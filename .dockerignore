@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+**/.turbo
+**/coverage
+**/uploads
+**/*.log
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.claude
+USER_GUIDE.md

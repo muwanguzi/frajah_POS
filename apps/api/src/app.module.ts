@@ -35,7 +35,10 @@ import { SettingsModule } from './modules/settings/settings.module';
         password: configService.get('DB_PASSWORD', ''),
         database: configService.get('DB_NAME', 'franjah_pos'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('NODE_ENV') !== 'production',
+        // No migration system is wired up yet (migration:run targets a config file that
+        // doesn't exist), so synchronize stays on in production until real migrations
+        // are added. DB_SYNCHRONIZE lets ops explicitly turn it off once they exist.
+        synchronize: configService.get('DB_SYNCHRONIZE', 'true') === 'true',
         logging: configService.get('NODE_ENV') === 'development',
       }),
     }),
