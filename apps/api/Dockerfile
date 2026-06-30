@@ -17,7 +17,7 @@ FROM deps AS build
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/api apps/api
-RUN pnpm --filter @franjah/api... run build
+RUN pnpm --filter @franjah/api run build
 
 # ---- runtime: slim image with only what's needed to run ----
 FROM node:20-alpine AS runtime

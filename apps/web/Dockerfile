@@ -15,7 +15,7 @@ FROM deps AS build
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared
 COPY apps/web apps/web
-RUN pnpm --filter @franjah/web... run build
+RUN pnpm --filter @franjah/web run build
 
 # ---- runtime: Nginx serving the static build + reverse-proxying /api ----
 FROM nginx:1.27-alpine AS runtime
