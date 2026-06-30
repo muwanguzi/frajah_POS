@@ -35,4 +35,4 @@ COPY --from=build /repo/packages/shared packages/shared
 
 WORKDIR /repo/apps/api
 EXPOSE 3000
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "node_modules/.bin/typeorm migration:run -d dist/config/data-source.js && node dist/main"]
