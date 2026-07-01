@@ -52,13 +52,13 @@ const routeTitles: Record<string, string> = {
 };
 
 export default function Topbar() {
-  const { toggleSidebar } = useUIStore();
+  const { toggleMobileMenu } = useUIStore();
   const { user, clearAuth } = useAuthStore();
   const { activeBranchName } = useBranchStore();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const pageTitle = routeTitles[location.pathname] || 'Franjah POS';
+  const pageTitle = routeTitles[location.pathname] || 'Frajah Clas-tic Stores';
 
   const handleLogout = async () => {
     try {
@@ -76,24 +76,24 @@ export default function Topbar() {
     : 'U';
 
   return (
-    <header className="h-16 bg-white border-b flex items-center px-6 gap-4 shrink-0">
+    <header className="h-16 bg-white border-b flex items-center px-3 sm:px-6 gap-2 sm:gap-4 shrink-0">
       {/* Left */}
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
         <Button
           variant="ghost"
           size="icon"
-          onClick={toggleSidebar}
-          className="h-8 w-8"
+          onClick={toggleMobileMenu}
+          className="h-8 w-8 lg:hidden shrink-0"
         >
           <Menu className="h-4 w-4" />
         </Button>
-        <div>
-          <h2 className="font-semibold text-gray-900">{pageTitle}</h2>
+        <div className="min-w-0">
+          <h2 className="font-semibold text-gray-900 truncate">{pageTitle}</h2>
         </div>
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
         {/* Branch Indicator */}
         {activeBranchName && (
           <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-blue-50 text-blue-700 text-sm">

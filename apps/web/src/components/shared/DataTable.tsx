@@ -49,7 +49,7 @@ export function DataTable<T>({
   return (
     <div className="space-y-4">
       {toolbar && (
-        <div className="flex items-center justify-between">{toolbar}</div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">{toolbar}</div>
       )}
       <div className="rounded-md border bg-white">
         <Table>

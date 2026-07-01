@@ -242,7 +242,7 @@ export default function CategoriesPage() {
   ];
 
   const toolbar = (
-    <div className="flex items-center gap-3 w-full">
+    <div className="flex flex-wrap items-center gap-3 w-full">
       <SearchInput
         placeholder="Search categories..."
         onSearch={handleSearch}

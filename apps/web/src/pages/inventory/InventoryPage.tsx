@@ -219,7 +219,7 @@ export default function InventoryPage() {
   ];
 
   const toolbar = (
-    <div className="flex items-center gap-3 w-full">
+    <div className="flex flex-wrap items-center gap-3 w-full">
       <SearchInput
         placeholder="Search by product or SKU..."
         onSearch={handleSearch}

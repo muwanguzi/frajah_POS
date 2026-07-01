@@ -161,7 +161,7 @@ export default function SalesReportPage() {
       </div>
 
       {/* Summary Row */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 flex justify-between items-center">
             <span className="text-sm text-gray-600">Total Tax Collected</span>

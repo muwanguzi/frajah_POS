@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { useUIStore } from '@/stores/ui.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useIsDesktop } from '@/hooks/useMediaQuery';
 import {
   Tooltip,
   TooltipContent,
@@ -91,12 +92,17 @@ const navGroups: NavGroup[] = [
 ];
 
 export default function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar } = useUIStore();
+  const { sidebarCollapsed, toggleSidebar, mobileMenuOpen, closeMobileMenu } = useUIStore();
   const { user } = useAuthStore();
   const { isAdmin } = usePermissions();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
+  // The icon-only collapse only applies on desktop — the mobile drawer always
+  // shows full labels, even if a desktop session previously collapsed it.
+  const collapsed = isDesktop && sidebarCollapsed;
 
   const handlePOSClick = (e: React.MouseEvent, href: string) => {
+    closeMobileMenu();
     if (href === '/pos') {
       e.preventDefault();
       navigate('/pos');
@@ -105,22 +111,36 @@ export default function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
+      {/* Mobile backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={closeMobileMenu}
+          aria-hidden="true"
+        />
+      )}
       <aside
         className={cn(
-          'flex flex-col h-screen bg-slate-900 text-slate-100 transition-all duration-300 shrink-0',
-          sidebarCollapsed ? 'w-16' : 'w-64'
+          'flex flex-col h-screen bg-slate-900 text-slate-100 transition-transform duration-300 shrink-0 w-64',
+          'fixed inset-y-0 left-0 z-50 lg:static lg:transition-[width]',
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full',
+          'lg:translate-x-0',
+          sidebarCollapsed ? 'lg:w-16' : 'lg:w-64'
         )}
       >
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 border-b border-slate-700">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg shrink-0">
-              <ShoppingCart className="h-4 w-4 text-white" />
+        <div className="flex items-center h-16 px-3 border-b border-slate-700">
+          {collapsed ? (
+            <div className="flex items-center justify-center w-8 h-8 bg-white rounded-lg shrink-0 overflow-hidden">
+              <img src="/logo.png" alt="Frajah" className="w-8 h-8 object-cover object-left" />
             </div>
-            {!sidebarCollapsed && (
-              <span className="font-bold text-lg truncate">Franjah POS</span>
-            )}
-          </div>
+          ) : (
+            <img
+              src="/logo.png"
+              alt="Frajah Clas-tic Stores"
+              className="h-10 w-auto object-contain bg-white rounded-lg px-2 py-1"
+            />
+          )}
         </div>
 
         {/* Navigation */}
@@ -129,7 +149,7 @@ export default function Sidebar() {
             if (group.adminOnly && !isAdmin) return null;
             return (
               <div key={group.section} className="mb-4">
-                {!sidebarCollapsed && (
+                {!collapsed && (
                   <p className="px-4 mb-1 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                     {group.section}
                   </p>
@@ -145,7 +165,7 @@ export default function Sidebar() {
                       className={({ isActive }) =>
                         cn(
                           'flex items-center gap-3 mx-2 px-3 py-2 rounded-lg text-sm transition-all duration-150 group',
-                          sidebarCollapsed ? 'justify-center' : '',
+                          collapsed ? 'justify-center' : '',
                           isActive
                             ? 'bg-slate-700 text-white font-medium'
                             : 'text-slate-300 hover:bg-slate-800 hover:text-white'
@@ -153,13 +173,13 @@ export default function Sidebar() {
                       }
                     >
                       <Icon className="h-4 w-4 shrink-0" />
-                      {!sidebarCollapsed && (
+                      {!collapsed && (
                         <span className="truncate">{item.label}</span>
                       )}
                     </NavLink>
                   );
 
-                  if (sidebarCollapsed) {
+                  if (collapsed) {
                     return (
                       <Tooltip key={item.href}>
                         <TooltipTrigger asChild>{navItem}</TooltipTrigger>
@@ -178,7 +198,7 @@ export default function Sidebar() {
 
         {/* User section */}
         <div className="border-t border-slate-700 p-3">
-          {!sidebarCollapsed && user ? (
+          {!collapsed && user ? (
             <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-800 transition-colors">
               <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-full shrink-0 text-white text-sm font-bold">
                 {user.firstName?.[0]?.toUpperCase() || 'U'}
@@ -192,7 +212,7 @@ export default function Sidebar() {
                 </p>
               </div>
             </div>
-          ) : sidebarCollapsed && user ? (
+          ) : collapsed && user ? (
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-full mx-auto text-white text-sm font-bold cursor-pointer">
@@ -205,10 +225,10 @@ export default function Sidebar() {
             </Tooltip>
           ) : null}
 
-          {/* Collapse toggle */}
+          {/* Collapse toggle — desktop only, meaningless inside the mobile drawer */}
           <button
             onClick={toggleSidebar}
-            className="flex items-center justify-center w-full mt-2 h-8 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+            className="hidden lg:flex items-center justify-center w-full mt-2 h-8 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
           >
             {sidebarCollapsed ? (
               <ChevronRight className="h-4 w-4" />

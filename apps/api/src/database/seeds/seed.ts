@@ -117,8 +117,8 @@ async function seed() {
     { key: 'costingMethod', value: 'FIFO' },
     { key: 'currency', value: 'UGX' },
     { key: 'vatRate', value: '18' },
-    { key: 'businessName', value: 'Franjah Business' },
-    { key: 'receiptPrefix', value: 'FRJ' },
+    { key: 'businessName', value: 'Frajah Clas-tic Stores' },
+    { key: 'receiptPrefix', value: 'FCS' },
   ];
   for (const setting of defaultSettings) {
     const exists = await settingRepo.findOne({

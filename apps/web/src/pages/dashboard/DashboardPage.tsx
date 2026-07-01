@@ -327,7 +327,7 @@ export default function DashboardPage() {
             <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {quickActions.map((action) => {
                 const Icon = action.icon;
                 return (

@@ -282,7 +282,7 @@ export default function SuppliersPage() {
   ];
 
   const toolbar = (
-    <div className="flex items-center gap-3 w-full">
+    <div className="flex flex-wrap items-center gap-3 w-full">
       <SearchInput
         placeholder="Search suppliers..."
         onSearch={handleSearch}
@@ -359,7 +359,7 @@ export default function SuppliersPage() {
             </div>
 
             {/* Phone & Email */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="add-phone">Phone</Label>
                 <Input
@@ -471,7 +471,7 @@ export default function SuppliersPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="edit-phone">Phone</Label>
                 <Input

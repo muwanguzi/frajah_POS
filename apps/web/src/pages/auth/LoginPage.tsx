@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Boxes,
   Calculator,
-  ShoppingCart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,22 +75,23 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-900 to-blue-700 flex-col justify-between p-12">
         <div>
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-16">
-            <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl backdrop-blur-sm">
-              <ShoppingCart className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">Franjah POS</span>
+          <div className="mb-16">
+            <img
+              src="/logo.png"
+              alt="Frajah Clas-tic Stores"
+              className="h-20 w-auto object-contain bg-white rounded-2xl px-4 py-2"
+            />
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl font-bold text-white leading-tight mb-4">
-            Smart Business Management
+            Your Kitchenware &amp;
             <br />
-            <span className="text-blue-200">for Uganda</span>
+            <span className="text-blue-200">Household Store POS</span>
           </h1>
           <p className="text-blue-200 text-lg mb-12">
-            The complete point-of-sale and business intelligence platform built
-            for Ugandan retail.
+            Complete point-of-sale and business management platform for
+            Frajah Clas-tic Stores — kitchenware, cookware, and household essentials.
           </p>
 
           {/* Features */}
@@ -133,7 +133,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-blue-300 text-sm">
-          © 2026 Franjah Technologies Ltd. All rights reserved.
+          © 2026 Frajah Clas-tic Stores. All rights reserved.
         </p>
       </div>
 
@@ -141,11 +141,12 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
-          <div className="flex items-center gap-3 mb-8 lg:hidden">
-            <div className="flex items-center justify-center w-10 h-10 bg-blue-600 rounded-xl">
-              <ShoppingCart className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">Franjah POS</span>
+          <div className="mb-8 lg:hidden">
+            <img
+              src="/logo.png"
+              alt="Frajah Clas-tic Stores"
+              className="h-14 w-auto object-contain"
+            />
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border p-8">

@@ -314,16 +314,19 @@ export default function POSPage() {
   return (
     <div className="fixed inset-0 bg-gray-100 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="h-14 bg-blue-900 text-white flex items-center px-4 shrink-0 gap-4">
-        <div className="flex items-center gap-2 flex-1">
-          <ShoppingCart className="h-5 w-5 text-blue-300" />
-          <span className="font-bold text-lg">Franjah POS</span>
-          <span className="text-blue-300 text-sm ml-1">
-            — {session?.branch?.name ?? 'Head Office'}
+      <header className="h-14 bg-blue-900 text-white flex items-center px-2 sm:px-4 shrink-0 gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <img
+            src="/logo.png"
+            alt="Frajah Clas-tic Stores"
+            className="h-9 w-auto object-contain bg-white rounded-lg px-2 py-0.5 shrink-0"
+          />
+          <span className="text-blue-300 text-sm truncate hidden sm:inline">
+            {session?.branch?.name ?? 'Head Office'}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
           <Badge className="bg-blue-700 text-blue-100 border-blue-600 text-xs">
             NEW SALE
           </Badge>
@@ -335,33 +338,34 @@ export default function POSPage() {
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {session && (
             <Button
               variant="outline"
               size="sm"
-              className="border-red-600 text-red-300 hover:bg-red-900 h-8"
+              className="border-red-600 text-red-300 hover:bg-red-900 h-8 px-2 sm:px-3 text-xs sm:text-sm"
               onClick={() => setCloseSessionOpen(true)}
             >
-              Close Session
+              <span className="hidden sm:inline">Close Session</span>
+              <span className="sm:hidden">Close</span>
             </Button>
           )}
           <Button
             variant="outline"
             size="sm"
-            className="border-blue-700 text-blue-200 hover:bg-blue-800 h-8"
+            className="border-blue-700 text-blue-200 hover:bg-blue-800 h-8 px-2 sm:px-3 text-xs sm:text-sm"
             onClick={() => navigate('/dashboard')}
           >
-            <LogOut className="mr-1.5 h-3.5 w-3.5" />
-            Exit POS
+            <LogOut className="sm:mr-1.5 h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Exit POS</span>
           </Button>
         </div>
       </header>
 
       {/* Body */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
         {/* Left: Product Panel */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-white border-r">
+        <div className="flex-1 flex flex-col overflow-hidden bg-white border-b lg:border-b-0 lg:border-r min-h-0">
           {/* Search Bar */}
           <div className="h-14 border-b flex items-center px-4 gap-3 bg-gray-50">
             <Barcode className="h-5 w-5 text-gray-400 shrink-0" />
@@ -407,7 +411,7 @@ export default function POSPage() {
           </div>
 
           {/* Product Grid */}
-          <div className="flex-1 overflow-y-auto p-4 grid grid-cols-3 xl:grid-cols-4 gap-3 content-start">
+          <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
             {productsLoading ? (
               Array.from({ length: 12 }).map((_, i) => (
                 <div
@@ -472,7 +476,7 @@ export default function POSPage() {
         </div>
 
         {/* Right: Cart Panel */}
-        <div className="w-96 bg-gray-50 flex flex-col shrink-0">
+        <div className="w-full lg:w-96 h-[45vh] lg:h-auto bg-gray-50 flex flex-col shrink-0 min-h-0">
           {/* Customer Section */}
           <div className="p-3 border-b bg-white">
             <div className="flex items-center gap-2">
@@ -762,7 +766,7 @@ export default function POSPage() {
           {lastSale && (
             <div className="font-mono text-sm space-y-3">
               <div className="text-center border-b pb-3">
-                <p className="font-bold text-base">Franjah POS</p>
+                <img src="/logo.png" alt="Frajah Clas-tic Stores" className="h-10 w-auto object-contain mx-auto mb-1" />
                 <p className="text-gray-500 text-xs">
                   {format(new Date(), 'dd MMM yyyy HH:mm')}
                 </p>

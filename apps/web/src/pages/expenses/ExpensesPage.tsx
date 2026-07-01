@@ -263,7 +263,7 @@ export default function ExpensesPage() {
   ];
 
   const toolbar = (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-3">
       <Select value={statusFilter} onValueChange={setStatusFilter}>
         <SelectTrigger className="w-44">
           <SelectValue />
@@ -305,8 +305,8 @@ export default function ExpensesPage() {
           <DialogHeader>
             <DialogTitle>Add Expense</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5 col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="exp-desc">Description</Label>
               <Input
                 id="exp-desc"
@@ -362,7 +362,7 @@ export default function ExpensesPage() {
                 placeholder="https://..."
               />
             </div>
-            <div className="space-y-1.5 col-span-2">
+            <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="exp-notes">Notes</Label>
               <Input
                 id="exp-notes"
