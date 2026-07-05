@@ -12,7 +12,8 @@
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/config/data-source.ts",
     "migration:run:prod": "typeorm migration:run -d dist/config/data-source.js",
     "migration:revert:prod": "typeorm migration:revert -d dist/config/data-source.js",
-    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
+    "prepare:production": "ts-node -r tsconfig-paths/register src/database/seeds/prepare-production.ts"
   },
   "dependencies": {
     "@franjah/shared": "workspace:*",
