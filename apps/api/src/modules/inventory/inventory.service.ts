@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
 import { StockLevel } from '../../database/entities/stock-level.entity';
 import { StockAdjustment } from '../../database/entities/stock-adjustment.entity';
 import { StockTransfer } from '../../database/entities/stock-transfer.entity';
@@ -19,7 +19,6 @@ export class InventoryService {
     private transferRepository: Repository<StockTransfer>,
     @InjectRepository(StockCount)
     private stockCountRepository: Repository<StockCount>,
-    private dataSource: DataSource,
   ) {}
 
   async getStockLevels(
@@ -56,7 +55,7 @@ export class InventoryService {
     // Resolve branch — fall back to main branch if branchId missing/invalid
     let resolvedBranchId = branchId;
     if (!resolvedBranchId || resolvedBranchId === 'main') {
-      const [branch] = await this.dataSource.query(
+      const [branch] = await this.stockLevelRepository.manager.query(
         `SELECT id FROM branches WHERE is_main = true LIMIT 1`,
       );
       resolvedBranchId = branch?.id;
@@ -84,11 +83,11 @@ export class InventoryService {
     }
 
     // Sync product.current_stock from sum of all stock_levels
-    const [{ total }] = await this.dataSource.query(
+    const [{ total }] = await this.stockLevelRepository.manager.query(
       `SELECT COALESCE(SUM(quantity_on_hand), 0) AS total FROM stock_levels WHERE product_id = $1`,
       [productId],
     );
-    await this.dataSource.query(
+    await this.stockLevelRepository.manager.query(
       `UPDATE products SET current_stock = $1 WHERE id = $2`,
       [total, productId],
     );
