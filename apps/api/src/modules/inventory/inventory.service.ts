@@ -55,10 +55,16 @@ export class InventoryService {
     // Resolve branch — fall back to main branch if branchId missing/invalid
     let resolvedBranchId = branchId;
     if (!resolvedBranchId || resolvedBranchId === 'main') {
-      const [branch] = await this.stockLevelRepository.manager.query(
+      const rows = await this.stockLevelRepository.manager.query(
         `SELECT id FROM branches WHERE is_main = true LIMIT 1`,
       );
-      resolvedBranchId = branch?.id;
+      resolvedBranchId = rows[0]?.id;
+    }
+    if (!resolvedBranchId) {
+      const rows = await this.stockLevelRepository.manager.query(
+        `SELECT id FROM branches ORDER BY created_at LIMIT 1`,
+      );
+      resolvedBranchId = rows[0]?.id;
     }
 
     const isIncrease = INCREASE_TYPES.includes(type);
