@@ -3,7 +3,10 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Product } from './product.entity';
 
 @Entity('stock_adjustments')
 export class StockAdjustment {
@@ -18,6 +21,10 @@ export class StockAdjustment {
 
   @Column({ name: 'product_id' })
   productId: string;
+
+  @ManyToOne(() => Product, { nullable: true, eager: false })
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 
   @Column({ length: 30 })
   type: string;
