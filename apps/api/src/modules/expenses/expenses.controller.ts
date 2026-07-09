@@ -53,8 +53,8 @@ export class ExpensesController {
 
   @Post()
   @ApiOperation({ summary: 'Create expense' })
-  create(@Body() dto: Partial<Expense>) {
-    return this.expensesService.create(dto);
+  create(@Body() dto: Partial<Expense> & { date?: string }, @CurrentUser() user: User) {
+    return this.expensesService.create(dto, user.id, user.branchId);
   }
 
   @Patch(':id')

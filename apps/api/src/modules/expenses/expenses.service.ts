@@ -43,8 +43,39 @@ export class ExpensesService {
     return expense;
   }
 
-  async create(data: Partial<Expense>): Promise<Expense> {
-    const expense = this.expenseRepository.create(data);
+  async create(
+    data: Partial<Expense> & { date?: string },
+    submittedById?: string,
+    branchId?: string,
+  ): Promise<Expense> {
+    // Auto-generate expense number
+    const count = await this.expenseRepository.count();
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const expenseNumber = `EXP-${today}-${String(count + 1).padStart(4, '0')}`;
+
+    // Resolve branchId — use caller's branch or fall back to main branch
+    let resolvedBranchId = branchId || data.branchId;
+    if (!resolvedBranchId) {
+      const rows = await this.expenseRepository.manager.query(
+        `SELECT id FROM branches WHERE is_main = true LIMIT 1`,
+      );
+      resolvedBranchId = rows[0]?.id;
+    }
+    if (!resolvedBranchId) {
+      const rows = await this.expenseRepository.manager.query(
+        `SELECT id FROM branches ORDER BY created_at LIMIT 1`,
+      );
+      resolvedBranchId = rows[0]?.id;
+    }
+
+    const expense = this.expenseRepository.create({
+      ...data,
+      expenseNumber,
+      expenseDate: data.date || data.expenseDate,
+      branchId: resolvedBranchId,
+      submittedById: submittedById || data.submittedById || null,
+      status: data.status || 'PENDING',
+    });
     return this.expenseRepository.save(expense);
   }
 
