@@ -293,6 +293,7 @@ export default function POSPage() {
         discountPercent: item.discountPercent,
       })),
       discountAmount,
+      taxRate: vatEnabled ? 0.18 : 0,
       payments: [{ method: paymentMethod, amount: Number(amountTendered) }],
     });
   };
