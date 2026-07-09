@@ -46,12 +46,14 @@ export class ProductsService {
   }
 
   async create(data: Partial<Product>): Promise<Product> {
+    if (data.barcode === '' || data.barcode === undefined) data.barcode = null;
     const product = this.productRepository.create(data);
     return this.productRepository.save(product);
   }
 
   async update(id: string, data: Partial<Product>): Promise<Product> {
     await this.findOne(id);
+    if (data.barcode === '') data.barcode = null;
     await this.productRepository.update(id, data);
     return this.findOne(id);
   }
