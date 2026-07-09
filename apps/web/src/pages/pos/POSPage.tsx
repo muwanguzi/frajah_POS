@@ -299,6 +299,14 @@ export default function POSPage() {
 
   const change = Number(amountTendered) - grandTotal;
 
+  // Keep amountTendered in sync when VAT is toggled while the dialog is open
+  useEffect(() => {
+    if (paymentOpen) {
+      setAmountTendered(String(Math.ceil(grandTotal)));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vatEnabled]);
+
   // Loading state while session is initialising
   if (sessionLoading) {
     return (
@@ -737,6 +745,29 @@ export default function POSPage() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50 rounded-lg border">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Apply VAT (18%)</p>
+                <p className="text-xs text-gray-400">
+                  {vatEnabled ? `+${formatUGX(taxAmount)} tax` : 'No VAT on this sale'}
+                </p>
+              </div>
+              <button
+                onClick={() => setVatEnabled(!vatEnabled)}
+                className={cn(
+                  'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none',
+                  vatEnabled ? 'bg-green-500' : 'bg-gray-300'
+                )}
+              >
+                <span
+                  className={cn(
+                    'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform',
+                    vatEnabled ? 'translate-x-6' : 'translate-x-1'
+                  )}
+                />
+              </button>
             </div>
 
             <div>
