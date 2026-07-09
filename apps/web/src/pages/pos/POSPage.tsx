@@ -84,8 +84,8 @@ export default function POSPage() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const {
-    cart, customer, discountAmount,
-    setCustomer, setDiscountAmount, updateCartItem, removeFromCart, clearCart, addToCart,
+    cart, customer, discountAmount, vatEnabled,
+    setCustomer, setDiscountAmount, updateCartItem, removeFromCart, clearCart, addToCart, setVatEnabled,
   } = usePOSStore();
   const { subtotal, taxAmount, grandTotal } = usePOSComputations();
 
@@ -641,9 +641,28 @@ export default function POSPage() {
                 <span>- {formatUGX(discountAmount)}</span>
               </div>
             )}
-            <div className="flex justify-between text-gray-600">
-              <span>VAT (18%)</span>
-              <span>{formatUGX(taxAmount)}</span>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setVatEnabled(!vatEnabled)}
+                className={cn(
+                  'flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border transition-all',
+                  vatEnabled
+                    ? 'bg-green-50 border-green-400 text-green-700 hover:bg-green-100'
+                    : 'bg-gray-100 border-gray-300 text-gray-500 hover:bg-gray-200'
+                )}
+                title="Toggle VAT"
+              >
+                <span
+                  className={cn(
+                    'inline-block w-3 h-3 rounded-full',
+                    vatEnabled ? 'bg-green-500' : 'bg-gray-400'
+                  )}
+                />
+                {vatEnabled ? 'VAT 18%' : 'No VAT'}
+              </button>
+              <span className={vatEnabled ? 'text-gray-600' : 'text-gray-400 line-through'}>
+                {formatUGX(taxAmount)}
+              </span>
             </div>
             <div className="flex justify-between pt-2 border-t">
               <span className="text-lg font-bold text-gray-900">TOTAL</span>
@@ -690,6 +709,11 @@ export default function POSPage() {
               <p className="text-sm text-gray-500 mb-1">Amount Due</p>
               <p className="text-3xl font-bold text-blue-700">
                 {formatUGX(grandTotal)}
+              </p>
+              <p className="text-xs mt-1 text-gray-500">
+                {vatEnabled
+                  ? `Includes VAT ${formatUGX(taxAmount)}`
+                  : 'VAT not applied'}
               </p>
             </div>
 

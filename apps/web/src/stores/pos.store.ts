@@ -41,6 +41,7 @@ interface POSStore {
   payments: PaymentLine[];
   discountAmount: number;
   taxRate: number;
+  vatEnabled: boolean;
   setSession: (session: POSSession | null) => void;
   addToCart: (item: Omit<CartItem, 'lineTotal'>) => void;
   updateCartItem: (productId: string, updates: Partial<CartItem>) => void;
@@ -50,6 +51,7 @@ interface POSStore {
   addPayment: (payment: PaymentLine) => void;
   clearPayments: () => void;
   setDiscountAmount: (amount: number) => void;
+  setVatEnabled: (enabled: boolean) => void;
 }
 
 export const usePOSStore = create<POSStore>()(
@@ -61,6 +63,7 @@ export const usePOSStore = create<POSStore>()(
       payments: [],
       discountAmount: 0,
       taxRate: 0.18,
+      vatEnabled: true,
       setSession: (session) => set({ session }),
       addToCart: (item) =>
         set((state) => {
@@ -110,6 +113,7 @@ export const usePOSStore = create<POSStore>()(
         set((state) => ({ payments: [...state.payments, payment] })),
       clearPayments: () => set({ payments: [] }),
       setDiscountAmount: (amount) => set({ discountAmount: amount }),
+      setVatEnabled: (enabled) => set({ vatEnabled: enabled }),
     }),
     {
       name: 'franjah-pos-cart',
@@ -119,10 +123,10 @@ export const usePOSStore = create<POSStore>()(
 );
 
 export const usePOSComputations = () => {
-  const { cart, discountAmount, taxRate } = usePOSStore();
+  const { cart, discountAmount, taxRate, vatEnabled } = usePOSStore();
   const subtotal = cart.reduce((sum, item) => sum + item.lineTotal, 0);
   const afterDiscount = subtotal - discountAmount;
-  const taxAmount = afterDiscount * taxRate;
+  const taxAmount = vatEnabled ? afterDiscount * taxRate : 0;
   const grandTotal = afterDiscount + taxAmount;
   return { subtotal, discountAmount, taxAmount, grandTotal };
 };
