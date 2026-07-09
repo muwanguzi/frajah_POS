@@ -118,9 +118,24 @@ export class BatchesService {
       );
 
       if (totalAvailable < quantity) {
-        throw new BadRequestException(
-          `Insufficient stock. Available: ${totalAvailable}, Requested: ${quantity}`,
-        );
+        // No batch records found for this branch (products stocked via adjustments,
+        // not goods receipts). Fall back to stock_levels as the source of truth.
+        const stockRow = await manager
+          .createQueryBuilder()
+          .select('COALESCE(SUM(sl.quantity_on_hand::numeric), 0)', 'qty')
+          .from(StockLevel, 'sl')
+          .where('sl.product_id = :productId AND sl.branch_id = :branchId', { productId, branchId })
+          .getRawOne<{ qty: string }>();
+
+        const stockQty = parseFloat(stockRow?.qty ?? '0');
+        if (stockQty < quantity) {
+          throw new BadRequestException(
+            `Insufficient stock. Available: ${Math.max(totalAvailable, stockQty)}, Requested: ${quantity}`,
+          );
+        }
+
+        // Enough stock in stock_levels — allow the sale without batch-level tracking
+        return { batches: [], totalCost: 0, averageCost: 0 };
       }
 
       const result: BatchDeductionResult = {
