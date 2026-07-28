@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { StockCount } from './stock-count.entity';
+import { Product } from './product.entity';
 
 @Entity('stock_count_items')
 export class StockCountItem {
@@ -21,6 +22,10 @@ export class StockCountItem {
 
   @Column({ name: 'product_id' })
   productId: string;
+
+  @ManyToOne(() => Product, { nullable: true, eager: false })
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 
   @Column({
     name: 'system_quantity',

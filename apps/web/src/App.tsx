@@ -35,6 +35,7 @@ const InventoryPage = React.lazy(() => import('@/pages/inventory/InventoryPage')
 const AdjustmentsPage = React.lazy(() => import('@/pages/inventory/AdjustmentsPage'));
 const TransfersPage = React.lazy(() => import('@/pages/inventory/TransfersPage'));
 const StockCountPage = React.lazy(() => import('@/pages/inventory/StockCountPage'));
+const StockCountDetailPage = React.lazy(() => import('@/pages/inventory/StockCountDetailPage'));
 
 const CustomersPage = React.lazy(() => import('@/pages/customers/CustomersPage'));
 const CustomerDetailPage = React.lazy(() => import('@/pages/customers/CustomerDetailPage'));
@@ -281,6 +282,14 @@ const router = createBrowserRouter([
             element: (
               <Suspense fallback={<PageLoader />}>
                 <StockCountPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: 'inventory/stock-count/:id',
+            element: (
+              <Suspense fallback={<PageLoader />}>
+                <StockCountDetailPage />
               </Suspense>
             ),
           },

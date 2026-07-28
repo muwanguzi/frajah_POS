@@ -17,4 +17,10 @@ export const inventoryService = {
     apiClient.post('/inventory/stock-counts', data),
   getStockCounts: (params?: Record<string, unknown>) =>
     apiClient.get('/inventory/stock-counts', { params: { limit: 1000, ...params } }),
+  getStockCountById: (id: string) =>
+    apiClient.get(`/inventory/stock-counts/${id}`),
+  updateCountItem: (countId: string, itemId: string, countedQuantity: number) =>
+    apiClient.patch(`/inventory/stock-counts/${countId}/items/${itemId}`, { countedQuantity }),
+  completeStockCount: (id: string) =>
+    apiClient.post(`/inventory/stock-counts/${id}/complete`, {}),
 };

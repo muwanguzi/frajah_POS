@@ -5,6 +5,7 @@ import { StockLevel } from '../../database/entities/stock-level.entity';
 import { StockAdjustment } from '../../database/entities/stock-adjustment.entity';
 import { StockTransfer } from '../../database/entities/stock-transfer.entity';
 import { StockCount } from '../../database/entities/stock-count.entity';
+import { StockCountItem } from '../../database/entities/stock-count-item.entity';
 
 const INCREASE_TYPES = ['INCREASE', 'OPENING_STOCK', 'CORRECTION'];
 
@@ -19,6 +20,8 @@ export class InventoryService {
     private transferRepository: Repository<StockTransfer>,
     @InjectRepository(StockCount)
     private stockCountRepository: Repository<StockCount>,
+    @InjectRepository(StockCountItem)
+    private stockCountItemRepository: Repository<StockCountItem>,
   ) {}
 
   async getStockLevels(
@@ -156,9 +159,44 @@ export class InventoryService {
     return transfer;
   }
 
-  async createStockCount(data: Partial<StockCount>): Promise<StockCount> {
-    const count = this.stockCountRepository.create(data);
-    return this.stockCountRepository.save(count);
+  async createStockCount(
+    data: Partial<StockCount> & { branchId: string },
+    userId?: string,
+  ): Promise<StockCount> {
+    const count = await this.stockCountRepository.count();
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const countNumber = `CNT-${today}-${String(count + 1).padStart(4, '0')}`;
+
+    const saved = await this.stockCountRepository.save(
+      this.stockCountRepository.create({
+        ...data,
+        countNumber,
+        status: 'IN_PROGRESS',
+        startedAt: new Date(),
+        countedById: userId ?? null,
+      }),
+    );
+
+    // Populate one item per product that has a stock level for this branch
+    const levels = await this.stockLevelRepository.find({
+      where: { branchId: data.branchId },
+      relations: ['product'],
+    });
+
+    if (levels.length > 0) {
+      const items = levels.map((sl) =>
+        this.stockCountItemRepository.create({
+          stockCountId: saved.id,
+          productId: sl.productId,
+          systemQuantity: sl.quantityOnHand,
+          countedQuantity: '0',
+          variance: '0',
+        }),
+      );
+      await this.stockCountItemRepository.save(items);
+    }
+
+    return this.findStockCountById(saved.id);
   }
 
   async findStockCounts(
@@ -166,11 +204,85 @@ export class InventoryService {
     limit = 20,
   ): Promise<{ data: StockCount[]; total: number }> {
     const [data, total] = await this.stockCountRepository.findAndCount({
-      relations: ['items'],
+      relations: ['branch', 'items'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
     return { data, total };
+  }
+
+  async findStockCountById(id: string): Promise<StockCount> {
+    const count = await this.stockCountRepository.findOne({
+      where: { id },
+      relations: ['branch', 'items', 'items.product'],
+    });
+    if (!count) throw new NotFoundException('Stock count not found');
+    return count;
+  }
+
+  async updateCountItem(
+    countId: string,
+    itemId: string,
+    countedQuantity: number,
+  ): Promise<StockCountItem> {
+    const item = await this.stockCountItemRepository.findOne({
+      where: { id: itemId, stockCountId: countId },
+    });
+    if (!item) throw new NotFoundException('Count item not found');
+
+    const variance = countedQuantity - Number(item.systemQuantity);
+    item.countedQuantity = String(countedQuantity);
+    item.variance = String(variance);
+    return this.stockCountItemRepository.save(item);
+  }
+
+  async completeStockCount(id: string): Promise<StockCount> {
+    const count = await this.findStockCountById(id);
+
+    // Apply counted quantities → update stock_levels and create adjustments
+    for (const item of count.items) {
+      const counted = Number(item.countedQuantity);
+      const system = Number(item.systemQuantity);
+      if (counted === system) continue;
+
+      // Update stock_level directly to the counted quantity
+      await this.stockLevelRepository.manager.query(
+        `UPDATE stock_levels SET quantity_on_hand = $1, updated_at = NOW()
+         WHERE product_id = $2 AND branch_id = $3`,
+        [counted, item.productId, count.branchId],
+      );
+
+      // Keep product.current_stock in sync
+      const [{ total }] = await this.stockLevelRepository.manager.query(
+        `SELECT COALESCE(SUM(quantity_on_hand), 0) AS total FROM stock_levels WHERE product_id = $1`,
+        [item.productId],
+      );
+      await this.stockLevelRepository.manager.query(
+        `UPDATE products SET current_stock = $1 WHERE id = $2`,
+        [total, item.productId],
+      );
+
+      // Log adjustment record for audit trail
+      const adjNumber = `ADJ-CNT-${Date.now()}-${item.productId.slice(0, 4)}`;
+      const type = counted > system ? 'INCREASE' : 'DECREASE';
+      const qty = Math.abs(counted - system);
+      await this.adjustmentRepository.save(
+        this.adjustmentRepository.create({
+          adjustmentNumber: adjNumber,
+          productId: item.productId,
+          branchId: count.branchId,
+          type,
+          quantity: String(qty),
+          reason: `Stock count ${count.countNumber}`,
+          adjustedById: count.countedById,
+        }),
+      );
+    }
+
+    count.status = 'COMPLETED';
+    count.completedAt = new Date();
+    await this.stockCountRepository.save(count);
+    return this.findStockCountById(id);
   }
 }

@@ -28,6 +28,7 @@ const routeTitles: Record<string, string> = {
   '/inventory/adjustments': 'Stock Adjustments',
   '/inventory/transfers': 'Stock Transfers',
   '/inventory/stock-count': 'Stock Count',
+  '/inventory/stock-count/:id': 'Count Sheet',
   '/sales': 'Sales Overview',
   '/sales/orders': 'Sales Orders',
   '/sales/invoices': 'Invoices',

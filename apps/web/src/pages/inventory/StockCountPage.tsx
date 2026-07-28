@@ -1,16 +1,18 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { Plus, ClipboardList, CheckCircle } from 'lucide-react';
+import { Plus, ClipboardList, ClipboardCheck } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { DataTable } from '@/components/shared/DataTable';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { inventoryService } from '@/services/inventory.service';
 import apiClient from '@/lib/api-client';
 
 interface Branch { id: string; name: string }
@@ -20,8 +22,7 @@ interface StockCount {
   countNumber?: string;
   branch?: { id: string; name: string };
   status: string;
-  itemsCount?: number;
-  variance?: number;
+  items?: unknown[];
   notes?: string;
   startedAt?: string;
   completedAt?: string;
@@ -32,32 +33,42 @@ const emptyForm = { branchId: '', notes: '' };
 
 export default function StockCountPage() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
 
-  const { data: counts = [], isLoading } = useQuery<StockCount[]>({
+  const { data: countsRes, isLoading } = useQuery({
     queryKey: ['stock-counts'],
-    queryFn: () => apiClient.get('/inventory/stock-counts') as Promise<StockCount[]>,
+    queryFn: () => inventoryService.getStockCounts({ limit: 100 }) as Promise<{ data: StockCount[]; total: number } | StockCount[]>,
     retry: false,
   });
+  const counts: StockCount[] = Array.isArray(countsRes)
+    ? countsRes
+    : (countsRes as { data: StockCount[] } | undefined)?.data ?? [];
 
-  const { data: branches = [] } = useQuery<Branch[]>({
+  const { data: branchesRes = [] } = useQuery({
     queryKey: ['branches'],
-    queryFn: () => apiClient.get('/branches') as Promise<Branch[]>,
+    queryFn: () => apiClient.get('/branches') as Promise<Branch[] | { data: Branch[] }>,
     retry: false,
   });
+  const branches: Branch[] = Array.isArray(branchesRes)
+    ? branchesRes
+    : (branchesRes as { data: Branch[] }).data ?? [];
 
   const createCount = useMutation({
-    mutationFn: (data: typeof form) => apiClient.post('/inventory/stock-counts', data),
-    onSuccess: () => {
-      toast({ title: 'Stock count created' });
+    mutationFn: (data: typeof form) => inventoryService.createStockCount(data),
+    onSuccess: (newCount: unknown) => {
+      toast({ title: 'Stock count started', description: 'Enter counted quantities for each product.' });
       queryClient.invalidateQueries({ queryKey: ['stock-counts'] });
       setOpen(false);
       setForm(emptyForm);
+      const id = (newCount as StockCount)?.id;
+      if (id) navigate(`/inventory/stock-count/${id}`);
     },
-    onError: (e: any) => {
-      toast({ title: 'Error', description: e.response?.data?.message || 'Failed to create stock count', variant: 'destructive' });
+    onError: (e: unknown) => {
+      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      toast({ title: 'Error', description: msg || 'Failed to create stock count', variant: 'destructive' });
     },
   });
 
@@ -87,23 +98,14 @@ export default function StockCountPage() {
     },
     {
       header: 'Items',
-      cell: ({ row }) => <span className="font-mono text-sm">{row.original.itemsCount ?? '—'}</span>,
-    },
-    {
-      header: 'Variance',
-      cell: ({ row }) => {
-        const v = row.original.variance ?? 0;
-        return (
-          <span className={`font-mono text-sm font-medium ${v < 0 ? 'text-red-600' : v > 0 ? 'text-green-600' : 'text-gray-500'}`}>
-            {v > 0 ? '+' : ''}{v}
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <span className="font-mono text-sm">{row.original.items?.length ?? '—'}</span>
+      ),
     },
     {
       header: 'Started',
       cell: ({ row }) => (
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-500">
           {row.original.startedAt ? new Date(row.original.startedAt).toLocaleDateString('en-UG') : '—'}
         </span>
       ),
@@ -111,7 +113,7 @@ export default function StockCountPage() {
     {
       header: 'Completed',
       cell: ({ row }) => (
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-500">
           {row.original.completedAt ? new Date(row.original.completedAt).toLocaleDateString('en-UG') : '—'}
         </span>
       ),
@@ -119,11 +121,17 @@ export default function StockCountPage() {
     {
       id: 'actions',
       cell: ({ row }) => (
-        row.original.status === 'PENDING' || row.original.status === 'IN_PROGRESS' ? (
-          <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-            <CheckCircle className="h-3 w-3" /> Complete
-          </Button>
-        ) : null
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 h-7 text-xs"
+          onClick={() => navigate(`/inventory/stock-count/${row.original.id}`)}
+        >
+          {row.original.status === 'COMPLETED'
+            ? <><ClipboardCheck className="h-3 w-3" /> View</>
+            : <><ClipboardList className="h-3 w-3" /> Enter Counts</>
+          }
+        </Button>
       ),
     },
   ];
@@ -132,7 +140,7 @@ export default function StockCountPage() {
     <div>
       <PageHeader
         title="Stock Count"
-        subtitle="Conduct physical inventory counts and reconcile variances"
+        subtitle="Conduct physical inventory counts and update stock from real counts"
         actions={
           <Button className="gap-1.5" onClick={() => setOpen(true)}>
             <Plus className="h-4 w-4" /> Start Count
@@ -156,7 +164,7 @@ export default function StockCountPage() {
               <Select value={form.branchId} onValueChange={v => setForm(f => ({ ...f, branchId: v }))}>
                 <SelectTrigger><SelectValue placeholder="Select branch to count" /></SelectTrigger>
                 <SelectContent>
-                  {(Array.isArray(branches) ? branches : []).map(b => (
+                  {branches.map(b => (
                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -164,15 +172,15 @@ export default function StockCountPage() {
             </div>
             <div>
               <Label>Notes</Label>
-              <Input
+              <Textarea
                 value={form.notes}
                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                 placeholder="Optional notes for this count"
+                rows={2}
               />
             </div>
             <p className="text-xs text-gray-500">
-              Starting a stock count will create a count sheet with all products in the selected branch.
-              You can then enter physical counts for each item.
+              A count sheet will be created with all products in the selected branch pre-filled with current system quantities. You then enter the physical counted quantities.
             </p>
           </div>
           <DialogFooter>

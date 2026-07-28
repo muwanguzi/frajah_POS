@@ -2,12 +2,15 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Query,
   UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { User } from '../../database/entities/user.entity';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -102,8 +105,35 @@ export class InventoryController {
 
   @Post('stock-counts')
   @Roles(Role.ADMIN, Role.MANAGER, Role.STORE_KEEPER)
-  @ApiOperation({ summary: 'Create a stock count' })
-  createStockCount(@Body() dto: Partial<StockCount>) {
-    return this.inventoryService.createStockCount(dto);
+  @ApiOperation({ summary: 'Start a new stock count' })
+  createStockCount(
+    @Body() dto: Partial<StockCount> & { branchId: string },
+    @CurrentUser() user: User,
+  ) {
+    return this.inventoryService.createStockCount(dto, user.id);
+  }
+
+  @Get('stock-counts/:id')
+  @ApiOperation({ summary: 'Get stock count by ID with all items' })
+  findStockCountById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.inventoryService.findStockCountById(id);
+  }
+
+  @Patch('stock-counts/:id/items/:itemId')
+  @Roles(Role.ADMIN, Role.MANAGER, Role.STORE_KEEPER)
+  @ApiOperation({ summary: 'Update counted quantity for one item' })
+  updateCountItem(
+    @Param('id', ParseUUIDPipe) countId: string,
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+    @Body() dto: { countedQuantity: number },
+  ) {
+    return this.inventoryService.updateCountItem(countId, itemId, dto.countedQuantity);
+  }
+
+  @Post('stock-counts/:id/complete')
+  @Roles(Role.ADMIN, Role.MANAGER, Role.STORE_KEEPER)
+  @ApiOperation({ summary: 'Complete stock count and apply adjustments to stock' })
+  completeStockCount(@Param('id', ParseUUIDPipe) id: string) {
+    return this.inventoryService.completeStockCount(id);
   }
 }
