@@ -7,19 +7,9 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { inventoryService } from '@/services/inventory.service';
-import { formatCurrency } from '@/lib/currency';
 
 interface Product {
   id: string;
@@ -265,7 +255,7 @@ export default function StockCountDetailPage() {
                       {item.product?.sku ?? '—'}
                     </td>
                     <td className="px-4 py-3 text-right font-mono text-gray-700">
-                      {formatCurrency(system).replace('UGX', '').trim()}
+                      {system.toFixed(2)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {isCompleted ? (
@@ -324,33 +314,35 @@ export default function StockCountDetailPage() {
         </p>
       )}
 
-      <AlertDialog open={confirmComplete} onOpenChange={setConfirmComplete}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Complete stock count?</AlertDialogTitle>
-            <AlertDialogDescription>
+      <Dialog open={confirmComplete} onOpenChange={setConfirmComplete}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Complete stock count?</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-gray-600 space-y-2">
+            <p>
               This will update stock levels for all{' '}
               <strong>{items.length} products</strong> to match the counted quantities.
-              {itemsWithVariance > 0 && (
-                <span className="block mt-1 text-amber-700">
-                  {itemsWithVariance} product{itemsWithVariance > 1 ? 's have' : ' has'} variance — stock adjustments will be logged automatically.
-                </span>
-              )}
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            </p>
+            {itemsWithVariance > 0 && (
+              <p className="text-amber-700">
+                {itemsWithVariance} product{itemsWithVariance > 1 ? 's have' : ' has'} variance — stock adjustments will be logged automatically.
+              </p>
+            )}
+            <p className="text-red-600 font-medium">This action cannot be undone.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmComplete(false)}>Cancel</Button>
+            <Button
               className="bg-green-600 hover:bg-green-700"
-              onClick={() => completeMutation.mutate()}
+              onClick={() => { completeMutation.mutate(); setConfirmComplete(false); }}
               disabled={completeMutation.isPending}
             >
               {completeMutation.isPending ? 'Applying…' : 'Yes, complete & apply'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
