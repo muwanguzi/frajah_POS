@@ -19,7 +19,7 @@ export class StockCount {
   @Column({ name: 'count_number', unique: true, length: 50 })
   countNumber: string;
 
-  @Column({ name: 'branch_id' })
+  @Column({ name: 'branch_id', type: 'uuid' })
   branchId: string;
 
   @ManyToOne(() => Branch, { nullable: true, eager: false })
@@ -29,7 +29,7 @@ export class StockCount {
   @Column({ length: 30, default: 'IN_PROGRESS' })
   status: string;
 
-  @Column({ type: 'varchar', name: 'counted_by_id', nullable: true })
+  @Column({ type: 'uuid', name: 'counted_by_id', nullable: true })
   countedById: string | null;
 
   @Column({ nullable: true, type: 'text' })

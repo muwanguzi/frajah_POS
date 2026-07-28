@@ -20,7 +20,7 @@ export class StockCountItem {
   @JoinColumn({ name: 'stock_count_id' })
   stockCount: StockCount;
 
-  @Column({ name: 'product_id' })
+  @Column({ name: 'product_id', type: 'uuid' })
   productId: string;
 
   @ManyToOne(() => Product, { nullable: true, eager: false })
